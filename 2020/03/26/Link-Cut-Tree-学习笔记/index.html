@@ -1,23 +1,447 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-{% block title %}{{ page.title }} | {{ title }}{% endblock %}
+<link rel="stylesheet" href="/css/main.css">
 
-{% block page_class %}page-post-detail{% endblock %}
 
-{% block content %}
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-  <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yangdong2002.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="加边，删边，询问之中怎料变幻无常； 左旋，右旋，伸展背后暗含均摊平衡。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Link Cut Tree 学习笔记">
+<meta property="og:url" content="http://yangdong2002.github.io/2020/03/26/Link-Cut-Tree-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="山月半轮的博客">
+<meta property="og:description" content="加边，删边，询问之中怎料变幻无常； 左旋，右旋，伸展背后暗含均摊平衡。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-26T00:46:56.000Z">
+<meta property="article:modified_time" content="2020-03-25T17:50:58.000Z">
+<meta property="article:author" content="YangDavid">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yangdong2002.github.io/2020/03/26/Link-Cut-Tree-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Link Cut Tree 学习笔记 | 山月半轮的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="山月半轮的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
   </div>
 
-{% endblock %}
+  <div class="site-meta">
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">山月半轮的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Pause and ponder</p>
+  </div>
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yangdong2002.github.io/2020/03/26/Link-Cut-Tree-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="YangDavid">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="山月半轮的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Link Cut Tree 学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-26 00:46:56" itemprop="dateCreated datePublished" datetime="2020-03-26T00:46:56+00:00">2020-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-25 17:50:58" itemprop="dateModified" datetime="2020-03-25T17:50:58+00:00">2020-03-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>加边，删边，询问之中怎料变幻无常；</p>
+<p>左旋，右旋，伸展背后暗含均摊平衡。</p>
+<span id="more"></span>
+
+<h1 id="LCT-简介"><a href="#LCT-简介" class="headerlink" title="LCT 简介"></a>LCT 简介</h1><p>Link Cut Tree 是解决动态树相关问题的有力工具，其实准确说是维护动态的有根森林，即多棵有根树。它支持在均摊 $O(\log n)$ 的时间对森林进行以下操作：</p>
+<ul>
+<li><code>newnode(x)</code> 新建节点 x，这是个平凡的操作，是 $O(1)$ 的。</li>
+<li><code>link(x, y)</code> 将在不同连通块的节点 <code>x</code> 和 <code>y</code> 之间连边。</li>
+<li><code>cut(x, y)</code> 将 x, y 之间已有的边删掉。</li>
+<li><code>makeRoot(x)</code> 让 x 成为其所在树的根。</li>
+<li><code>pathQuery(x, y)</code> 或 <code>pathModify</code> ，询问 x 到 y 的路径上的有结合律的信息（如路径长度，路径上节点的异或和等可以用线段树维护的信息），或者进行修改。</li>
+</ul>
+<h1 id="LCT-核心操作"><a href="#LCT-核心操作" class="headerlink" title="LCT 核心操作"></a>LCT 核心操作</h1><p>Link Cut Tree 的核心是每个节点记录一个重儿子 (preferred child，应该叫偏爱儿子)，节点到重儿子的边称为重边，相邻的重边形成的叫重链，LCT 要把每个重链以深度为关键字用一棵 Splay 树来维护，而各个 Splay 树之间也存在父子关系，。具体说：</p>
+<p><strong>Auxiliary Tree(辅助树)</strong></p>
+<ul>
+<li><p>由一条重链上的所有节点所构成的 Splay 称作这条链的辅助树</p>
+</li>
+<li><p>每个点的键值为这个点的<strong>深度</strong>，即这棵Splay的中序遍历是这条链从链顶到链底的所有节点构成的序列</p>
+</li>
+<li><p>辅助树的根节点的父亲指向链顶的父亲节点，然而链顶的父亲节点的儿子并不指向辅助树的根节点</p>
+</li>
+<li><p>（也就是说父亲不认轻儿子只认重儿子，儿子都认父亲）</p>
+</li>
+<li><p>这条性质为后来的操作提供了依据</p>
+</li>
+</ul>
+<p><strong>原树与辅助树的关系</strong></p>
+<ul>
+<li>原树中的重链 -&gt; 辅助树中两个节点位于<strong>同一棵Splay</strong>中</li>
+<li>原树中的轻链 -&gt; 辅助树中子节点所在Splay的根节点的father指向父节点</li>
+<li>注意原树与辅助树的结构并不相同</li>
+<li>辅助树的根节点≠原树的根节点</li>
+<li>辅助树中的father≠原树中的father</li>
+</ul>
+<p><strong>辅助树是不断变化的，重链和轻链不断变化</strong></p>
+<p>令每个节点的重儿子 $h_v$ 如下：<br>$$<br>h_v = \begin{cases}v &amp; \text{if }v\text{ is the last accessed vertex in its subtree}\<br>w &amp;\text{if the last accessed vertex in }v \text{ ‘s subtree is in }\&amp;w \text{‘s subtree} \end{cases}<br>$$<br>只要维护上这个，就可以解决上面不涉及换根的所有问题了。</p>
+<p>换根怎么解决呢？</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><div><div class="fold_hider"><div class="close hider_title">点击显示/隐藏代码</div></div><div class="fold">
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Author       : YangDavid</span></span><br><span class="line"><span class="comment"> * Created Time : 2020年03月25日 星期三 18时09分40秒</span></span><br><span class="line"><span class="comment"> * Code Time    : 2020年03月25日 星期三 19时32分52秒</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> rep(i, n) for(int i = 1; i &lt;= n; ++i)</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">long</span> <span class="keyword">long</span> ll;</span><br><span class="line"><span class="keyword">typedef</span> <span class="built_in">pair</span>&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; pii;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">LCT</span> &#123;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> sid(x) ((x) == ch[fa[x]][1])</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> nroot(x) ((x) == ch[fa[x]][0] || (x) == ch[fa[x]][1])</span></span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; fa, xorsum, wg, rev;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="built_in">array</span>&lt;<span class="keyword">int</span>,2&gt;&gt; ch;</span><br><span class="line">    LCT(<span class="keyword">int</span> n=<span class="number">0</span>): fa(n+<span class="number">1</span>), xorsum(n+<span class="number">1</span>), wg(n+<span class="number">1</span>), rev(n+<span class="number">1</span>), ch(n+<span class="number">1</span>) &#123; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">newnode</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">        fa.push_back(<span class="number">0</span>), xorsum.push_back(val), wg.push_back(val);</span><br><span class="line">        rev.push_back(<span class="number">0</span>), ch.push_back(<span class="built_in">array</span>&lt;<span class="keyword">int</span>,<span class="number">2</span>&gt;(&#123;<span class="number">0</span>,<span class="number">0</span>&#125;));</span><br><span class="line">        <span class="keyword">return</span> fa.size() - <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">up</span><span class="params">(<span class="keyword">int</span> o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!o) <span class="keyword">return</span>;</span><br><span class="line">        xorsum[o] = xorsum[ch[o][<span class="number">0</span>]] ^ xorsum[ch[o][<span class="number">1</span>]] ^ wg[o];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">down</span><span class="params">(<span class="keyword">int</span> o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(o &amp;&amp; rev[o]) &#123;</span><br><span class="line">            swap(ch[o][<span class="number">0</span>], ch[o][<span class="number">1</span>]);</span><br><span class="line">            rev[ch[o][<span class="number">0</span>]] ^= <span class="number">1</span>;</span><br><span class="line">            rev[ch[o][<span class="number">1</span>]] ^= <span class="number">1</span>;</span><br><span class="line">            rev[o] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">update</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(nroot(x)) update(fa[x]);</span><br><span class="line">        down(x);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">rotate</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> y = fa[x], z = fa[y], k = sid(x);</span><br><span class="line">        <span class="keyword">if</span>(nroot(y)) ch[z][sid(y)] = x;</span><br><span class="line">        fa[x] = z;</span><br><span class="line">        fa[ch[x][k^<span class="number">1</span>]] = y, ch[y][k] = ch[x][k^<span class="number">1</span>];</span><br><span class="line">        fa[y] = x, ch[x][k^<span class="number">1</span>] = y;</span><br><span class="line">        up(y), up(x);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">splay</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123; <span class="comment">// never splay(0)!!!</span></span><br><span class="line">        update(x);</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> f = fa[x]; nroot(x); rotate(x), f = fa[x]) &#123;</span><br><span class="line">            <span class="keyword">if</span>(nroot(f)) rotate(sid(x) == sid(f) ? f : x);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">access</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123; <span class="comment">// root-to-x path became preferred, x became root.</span></span><br><span class="line">        <span class="keyword">int</span> p = <span class="number">0</span>, ori = x;</span><br><span class="line">        <span class="keyword">for</span>(; x; p = x, x = fa[x])</span><br><span class="line">            splay(x), ch[x][<span class="number">1</span>] = p, up(x);</span><br><span class="line">        splay(ori);</span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">makeRoot</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        access(x);</span><br><span class="line">        rev[x] ^= <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">link</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123; <span class="comment">// root(x) != root(y) must hold!</span></span><br><span class="line">        makeRoot(x);</span><br><span class="line">        fa[x] = y;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">cut</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123; <span class="comment">// edge must exist!</span></span><br><span class="line">        makeRoot(x);</span><br><span class="line">        access(y);</span><br><span class="line">        ch[y][<span class="number">0</span>] = fa[x] = <span class="number">0</span>;</span><br><span class="line">        up(y);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">findRoot</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        access(x);</span><br><span class="line">        <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">            down(x);</span><br><span class="line">            <span class="keyword">if</span>(!ch[x][<span class="number">0</span>]) <span class="keyword">break</span>;</span><br><span class="line">            x = ch[x][<span class="number">0</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        splay(x);</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">query</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        makeRoot(x);</span><br><span class="line">        access(y);</span><br><span class="line">        <span class="keyword">return</span> xorsum[y];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">modify</span><span class="params">(<span class="keyword">int</span> u, <span class="keyword">int</span> w)</span> </span>&#123;</span><br><span class="line">        access(u);</span><br><span class="line">        wg[u] = w;</span><br><span class="line">        up(u);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n, m;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d%d&quot;</span>, &amp;n, &amp;m);</span><br><span class="line">    LCT lct;</span><br><span class="line">    <span class="built_in">set</span>&lt;pii&gt; edges;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; ++i) &#123;</span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">int</span> x; <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;x);</span><br><span class="line">        lct.newnode(x);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= m; ++i) &#123;</span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">int</span> op, u, v;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%d%d%d&quot;</span>, &amp;op, &amp;u, &amp;v);</span><br><span class="line">        <span class="keyword">if</span>(op == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, lct.query(u, v));</span><br><span class="line">        &#125; <span class="keyword">if</span>(op == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(u &gt; v) swap(u, v);</span><br><span class="line">            <span class="keyword">if</span>(lct.findRoot(u) != lct.findRoot(v))</span><br><span class="line">                lct.link(u, v), edges.emplace(u, v);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(op == <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(u &gt; v) swap(u, v);</span><br><span class="line">            <span class="keyword">if</span>(!edges.count(&#123;u, v&#125;)) <span class="keyword">continue</span>;</span><br><span class="line">            lct.cut(u, v);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(op == <span class="number">3</span>) &#123;</span><br><span class="line">            lct.modify(u, v);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</div></div>
+
+<p>时间复杂度分析：</p>
+<p>$m$ 次操作，$h_v$ 的所有改变次数加起来是 $O(m\log n)$ 的。这是因为：<br>$$<br>\begin{aligned}<br>\text{changes in }h_v \leq &amp; \text{ preferred light edge created} + \<br>&amp; \text{ preferred heavy edge destroyed} +\<br>&amp; \text{ } n-1<br>\end{aligned}<br>$$</p>
+<p>Access Lemma</p>
+<p>轻重链剖分</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/20/%E5%AF%B9%E5%81%B6%E7%BA%BF%E6%80%A7%E8%A7%84%E5%88%92%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="对偶线性规划学习笔记">
+      <i class="fa fa-chevron-left"></i> 对偶线性规划学习笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/15/CMU-15-213-Introduction-to-Computer-Systems/" rel="next" title="CMU 15-213 Introduction to Computer Systems">
+      CMU 15-213 Introduction to Computer Systems <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LCT-%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">LCT 简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LCT-%E6%A0%B8%E5%BF%83%E6%93%8D%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">LCT 核心操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">YangDavid</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">YangDavid</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

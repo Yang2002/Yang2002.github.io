@@ -589,14 +589,7 @@
 </ul>
 <h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><p><a href="http://acm.zju.edu.cn/onlinejudge/searchProblem.do?contestId=1&titlefrom=0&authorfrom=0&sourcefrom=0&query=The+2019+ICPC+China+Shaanxi+Provincial+Programming+Contest">Practice Link</a></p>
 <p><a href="scoreboard.pdf">Score Board</a>：</p>
-
-
-	<div class="row">
-    <embed src="scoreboard.pdf" width="100%" height="550" type="application/pdf">
-	</div>
-
-
-
+<div class="pdfobject-container" data-target="scoreboard.pdf" data-height="500px"></div>
 ]]></content>
       <categories>
         <category>游记</category>
